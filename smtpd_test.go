@@ -160,16 +160,23 @@ func TestSMTP(t *testing.T) {
 }
 
 func TestListenAndServe(t *testing.T) {
-
 	addr, closer := runserver(t, &smtpd.Server{})
 	closer()
+	// Wait here for Windows to release the port.
+	time.Sleep(100 * time.Millisecond)
 
 	server := &smtpd.Server{}
 
+	dial := make(chan struct{})
 	go func() {
-		server.ListenAndServe(addr)
+		close(dial)
+		err := server.ListenAndServe(addr)
+		if err != nil {
+			t.Error(err)
+		}
 	}()
 
+	<-dial
 	time.Sleep(100 * time.Millisecond)
 
 	c, err := smtp.Dial(addr)
