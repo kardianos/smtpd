@@ -22,7 +22,7 @@ var tlsVersions = map[uint16]string{
 }
 
 // AddReceivedLine prepends a Received header to the Data
-func (env *Envelope) AddReceivedLine(peer Peer) {
+func (env *Envelope) AddReceivedLine(peer *Peer) {
 	tlsDetails := ""
 
 	if peer.TLS != nil {

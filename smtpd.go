@@ -28,20 +28,20 @@ type Server struct {
 	// New e-mails are handed off to this function.
 	// Can be left empty for a NOOP server.
 	// If an error is returned, it will be reported in the SMTP session.
-	Handler func(peer Peer, env Envelope) error
+	Handler func(peer *Peer, env Envelope) error
 
 	// Enable various checks during the SMTP session.
 	// Can be left empty for no restrictions.
 	// If an error is returned, it will be reported in the SMTP session.
 	// Use the Error struct for access to error codes.
-	ConnectionChecker func(peer Peer) error              // Called upon new connection.
-	HeloChecker       func(peer Peer, name string) error // Called after HELO/EHLO.
-	SenderChecker     func(peer Peer, addr string) error // Called after MAIL FROM.
-	RecipientChecker  func(peer Peer, addr string) error // Called after each RCPT TO.
+	ConnectionChecker func(peer *Peer) error              // Called upon new connection.
+	HeloChecker       func(peer *Peer, name string) error // Called after HELO/EHLO.
+	SenderChecker     func(peer *Peer, addr string) error // Called after MAIL FROM.
+	RecipientChecker  func(peer *Peer, addr string) error // Called after each RCPT TO.
 
 	// Enable PLAIN/LOGIN authentication, only available after STARTTLS.
 	// Can be left empty for no authentication support.
-	Authenticator func(peer Peer, username, password string) error
+	Authenticator func(peer *Peer, username, password string) error
 
 	EnableXCLIENT bool // Enable XCLIENT support (default: false)
 
@@ -93,7 +93,6 @@ type session struct {
 }
 
 func (srv *Server) newSession(c net.Conn) (s *session) {
-
 	s = &session{
 		server: srv,
 		conn:   c,
@@ -113,7 +112,6 @@ func (srv *Server) newSession(c net.Conn) (s *session) {
 
 // ListenAndServe starts the SMTP server and listens on the address provided
 func (srv *Server) ListenAndServe(addr string) error {
-
 	srv.configureDefaults()
 
 	l, err := net.Listen("tcp", addr)
@@ -171,7 +169,6 @@ func (srv *Server) Serve(l net.Listener) error {
 }
 
 func (srv *Server) configureDefaults() {
-
 	if srv.MaxMessageSize == 0 {
 		srv.MaxMessageSize = 10240000
 	}
@@ -211,7 +208,6 @@ func (srv *Server) configureDefaults() {
 }
 
 func (session *session) serve() {
-
 	defer session.close()
 
 	session.welcome()
@@ -255,9 +251,8 @@ func (session *session) reset() {
 }
 
 func (session *session) welcome() {
-
 	if session.server.ConnectionChecker != nil {
-		err := session.server.ConnectionChecker(session.peer)
+		err := session.server.ConnectionChecker(&session.peer)
 		if err != nil {
 			session.error(err)
 			session.close()
@@ -266,7 +261,6 @@ func (session *session) welcome() {
 	}
 
 	session.reply(220, session.server.WelcomeMessage)
-
 }
 
 func (session *session) reply(code int, message string) {
@@ -289,7 +283,6 @@ func (session *session) error(err error) {
 }
 
 func (session *session) extensions() []string {
-
 	extensions := []string{
 		fmt.Sprintf("SIZE %d", session.server.MaxMessageSize),
 		"8BITMIME",
@@ -309,14 +302,13 @@ func (session *session) extensions() []string {
 	}
 
 	return extensions
-
 }
 
 func (session *session) deliver() error {
-	if session.server.Handler != nil {
-		return session.server.Handler(session.peer, *session.envelope)
+	if session.server.Handler == nil {
+		return nil
 	}
-	return nil
+	return session.server.Handler(&session.peer, *session.envelope)
 }
 
 func (session *session) close() {

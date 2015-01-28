@@ -16,15 +16,14 @@ func ExampleServer() {
 
 	// Relay server. Accepts only from single IP address and forwards using the Gmail smtp
 	server = &smtpd.Server{
-
-		HeloChecker: func(peer smtpd.Peer, name string) error {
+		HeloChecker: func(peer *smtpd.Peer, name string) error {
 			if !strings.HasPrefix(peer.Addr.String(), "42.42.42.42:") {
 				return errors.New("Denied")
 			}
 			return nil
 		},
 
-		Handler: func(peer smtpd.Peer, env smtpd.Envelope) error {
+		Handler: func(peer *smtpd.Peer, env smtpd.Envelope) error {
 
 			return smtp.SendMail(
 				"smtp.gmail.com:587",
