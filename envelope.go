@@ -14,17 +14,16 @@ type Envelope struct {
 	Data       []byte
 }
 
+var tlsVersions = map[uint16]string{
+	tls.VersionSSL30: "SSL3.0",
+	tls.VersionTLS10: "TLS1.0",
+	tls.VersionTLS11: "TLS1.1",
+	tls.VersionTLS12: "TLS1.2",
+}
+
 // AddReceivedLine prepends a Received header to the Data
 func (env *Envelope) AddReceivedLine(peer Peer) {
-
 	tlsDetails := ""
-
-	tlsVersions := map[uint16]string{
-		tls.VersionSSL30: "SSL3.0",
-		tls.VersionTLS10: "TLS1.0",
-		tls.VersionTLS11: "TLS1.1",
-		tls.VersionTLS12: "TLS1.2",
-	}
 
 	if peer.TLS != nil {
 		tlsDetails = fmt.Sprintf(
@@ -47,8 +46,6 @@ func (env *Envelope) AddReceivedLine(peer Peer) {
 	env.Data = append(env.Data, line...)
 
 	// Move the new Received line up front
-
 	copy(env.Data[len(line):], env.Data[0:len(env.Data)-len(line)])
 	copy(env.Data, line)
-
 }
