@@ -111,7 +111,7 @@ func (session *session) handleHELO(cmd command) {
 	}
 
 	if session.server.HeloChecker != nil {
-		err := session.server.HeloChecker(&session.peer, cmd.fields[1])
+		err := session.server.HeloChecker(session.peer, cmd.fields[1])
 		if err != nil {
 			session.error(err)
 			return
@@ -139,7 +139,7 @@ func (session *session) handleEHLO(cmd command) {
 	}
 
 	if session.server.HeloChecker != nil {
-		err := session.server.HeloChecker(&session.peer, cmd.fields[1])
+		err := session.server.HeloChecker(session.peer, cmd.fields[1])
 		if err != nil {
 			session.error(err)
 			return
@@ -190,7 +190,7 @@ func (session *session) handleMAIL(cmd command) {
 	}
 
 	if session.server.SenderChecker != nil {
-		err = session.server.SenderChecker(&session.peer, addr)
+		err = session.server.SenderChecker(session.peer, addr)
 		if err != nil {
 			session.error(err)
 			return
@@ -227,7 +227,7 @@ func (session *session) handleRCPT(cmd command) {
 	}
 
 	if session.server.RecipientChecker != nil {
-		err = session.server.RecipientChecker(&session.peer, addr)
+		err = session.server.RecipientChecker(session.peer, addr)
 		if err != nil {
 			session.error(err)
 			return
@@ -453,7 +453,7 @@ func (session *session) handleAUTH(cmd command) {
 
 	}
 
-	err := session.server.Authenticator(&session.peer, username, password)
+	err := session.server.Authenticator(session.peer, username, password)
 	if err != nil {
 		session.error(err)
 		return
