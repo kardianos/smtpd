@@ -24,19 +24,18 @@ var (
 	privKey  []byte
 )
 
-func handler(peer *smtpd.Peer, env smtpd.Envelope) error {
-
+func handler(peer smtpd.Peer, env smtpd.Envelope) error {
 	d, err := dkim.New(dkimConf, privKey)
 	if err != nil {
 		log.Printf("DKIM error: %v", err)
-		return smtpd.Error{450, "Internal server error"}
+		return smtpd.ErrMessageError
 	}
 
 	// The dkim package expects \r\n newlines, so replace to that
 	data, err := d.Sign(bytes.Replace(env.Data, []byte("\n"), []byte("\r\n"), -1))
 	if err != nil {
 		log.Printf("DKIM signing error: %v", err)
-		return smtpd.Error{450, "Internal server error"}
+		return smtpd.ErrMessageError
 	}
 
 	return smtp.SendMail(
@@ -46,11 +45,9 @@ func handler(peer *smtpd.Peer, env smtpd.Envelope) error {
 		env.Recipients,
 		data,
 	)
-
 }
 
 func main() {
-
 	flag.Parse()
 
 	var err error
@@ -76,5 +73,4 @@ func main() {
 	}
 
 	server.ListenAndServe(*inAddr)
-
 }

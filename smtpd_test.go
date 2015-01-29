@@ -272,7 +272,7 @@ func TestSTARTTLS(t *testing.T) {
 func TestAuthRejection(t *testing.T) {
 	addr, closer := runsslserver(t, &smtpd.Server{
 		Authenticator: func(peer smtpd.Peer, username, password string) error {
-			return smtpd.Error{Code: 550, Message: "Denied"}
+			return smtpd.ErrAuthInvalid
 		},
 		ForceTLS: true,
 	})
@@ -317,7 +317,7 @@ func TestAuthNotSupported(t *testing.T) {
 func TestConnectionCheck(t *testing.T) {
 	addr, closer := runserver(t, &smtpd.Server{
 		ConnectionChecker: func(peer smtpd.Peer) error {
-			return smtpd.Error{Code: 552, Message: "Denied"}
+			return smtpd.ErrMessageExceedStorage
 		},
 	})
 	defer closer()
@@ -346,7 +346,7 @@ func TestHELOCheck(t *testing.T) {
 			if name != "foobar.local" {
 				t.Fatal("Wrong HELO name")
 			}
-			return smtpd.Error{Code: 552, Message: "Denied"}
+			return smtpd.ErrMessageExceedStorage
 		},
 	})
 	defer closer()
@@ -364,7 +364,7 @@ func TestHELOCheck(t *testing.T) {
 func TestSenderCheck(t *testing.T) {
 	addr, closer := runserver(t, &smtpd.Server{
 		SenderChecker: func(peer smtpd.Peer, addr string) error {
-			return smtpd.Error{Code: 552, Message: "Denied"}
+			return smtpd.ErrMessageExceedStorage
 		},
 	})
 	defer closer()
@@ -382,7 +382,7 @@ func TestSenderCheck(t *testing.T) {
 func TestRecipientCheck(t *testing.T) {
 	addr, closer := runserver(t, &smtpd.Server{
 		RecipientChecker: func(peer smtpd.Peer, addr string) error {
-			return smtpd.Error{Code: 552, Message: "Denied"}
+			return smtpd.ErrMessageExceedStorage
 		},
 	})
 	defer closer()
@@ -496,7 +496,7 @@ func TestHandler(t *testing.T) {
 func TestRejectHandler(t *testing.T) {
 	addr, closer := runserver(t, &smtpd.Server{
 		Handler: func(peer smtpd.Peer, env smtpd.Envelope) error {
-			return smtpd.Error{Code: 550, Message: "Rejected"}
+			return smtpd.ErrServerError
 		},
 	})
 	defer closer()
