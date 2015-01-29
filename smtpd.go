@@ -92,22 +92,19 @@ type session struct {
 	tls bool
 }
 
-func (srv *Server) newSession(c net.Conn) (s *session) {
-	s = &session{
+func (srv *Server) newSession(c net.Conn) *session {
+	reader := bufio.NewReader(c)
+	return &session{
 		server: srv,
 		conn:   c,
-		reader: bufio.NewReader(c),
+		reader: reader,
 		writer: bufio.NewWriter(c),
 		peer: Peer{
 			Addr:       c.RemoteAddr(),
 			ServerName: srv.Hostname,
 		},
+		scanner: bufio.NewScanner(reader),
 	}
-
-	s.scanner = bufio.NewScanner(s.reader)
-
-	return
-
 }
 
 // ListenAndServe starts the SMTP server and listens on the address provided
@@ -124,7 +121,6 @@ func (srv *Server) ListenAndServe(addr string) error {
 
 // Serve starts the SMTP server and listens on the Listener provided
 func (srv *Server) Serve(l net.Listener) error {
-
 	srv.configureDefaults()
 
 	defer l.Close()
@@ -133,39 +129,34 @@ func (srv *Server) Serve(l net.Listener) error {
 
 	if srv.MaxConnections > 0 {
 		limiter = make(chan struct{}, srv.MaxConnections)
-	} else {
-		limiter = nil
 	}
 
 	for {
-
-		conn, e := l.Accept()
-		if e != nil {
-			if ne, ok := e.(net.Error); ok && ne.Temporary() {
+		conn, err := l.Accept()
+		if err != nil {
+			if ne, ok := err.(net.Error); ok && ne.Temporary() {
 				time.Sleep(time.Second)
 				continue
 			}
-			return e
+			return err
 		}
 
 		session := srv.newSession(conn)
 
-		if limiter != nil {
-			go func() {
-				select {
-				case limiter <- struct{}{}:
-					session.serve()
-					<-limiter
-				default:
-					session.reject()
-				}
-			}()
-		} else {
+		if limiter == nil {
 			go session.serve()
+			continue
 		}
-
+		go func() {
+			select {
+			case limiter <- struct{}{}:
+				session.serve()
+				<-limiter
+			default:
+				session.reject()
+			}
+		}()
 	}
-
 }
 
 func (srv *Server) configureDefaults() {
@@ -204,41 +195,31 @@ func (srv *Server) configureDefaults() {
 	if srv.WelcomeMessage == "" {
 		srv.WelcomeMessage = fmt.Sprintf("%s ESMTP ready.", srv.Hostname)
 	}
-
 }
 
 func (session *session) serve() {
 	defer session.close()
 
 	session.welcome()
-
 	for {
-
 		for session.scanner.Scan() {
 			session.handle(session.scanner.Text())
 		}
 
-		err := session.scanner.Err()
-
-		if err == bufio.ErrTooLong {
-
+		if err := session.scanner.Err(); err == bufio.ErrTooLong {
 			session.reply(500, "Line too long")
 
 			// Advance reader to the next newline
-
 			session.reader.ReadString('\n')
 			session.scanner = bufio.NewScanner(session.reader)
 
 			// Reset and have the client start over.
-
 			session.reset()
-
 			continue
 		}
 
 		break
 	}
-
 }
 
 func (session *session) reject() {

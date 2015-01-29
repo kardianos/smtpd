@@ -22,10 +22,11 @@ type command struct {
 	params []string
 }
 
-func parseLine(line string) (cmd command) {
-
-	cmd.line = line
-	cmd.fields = strings.Fields(line)
+func parseLine(line string) command {
+	cmd := command{
+		line:   line,
+		fields: strings.Fields(line),
+	}
 
 	if len(cmd.fields) > 0 {
 		cmd.action = strings.ToUpper(cmd.fields[0])
@@ -34,72 +35,44 @@ func parseLine(line string) (cmd command) {
 		}
 	}
 
-	return
-
+	return cmd
 }
 
 func (session *session) handle(line string) {
-
 	cmd := parseLine(line)
 
 	// Commands are dispatched to the appropriate handler functions.
 	// If a network error occurs during handling, the handler should
 	// just return and let the error be handled on the next read.
-
 	switch cmd.action {
-
 	case "HELO":
 		session.handleHELO(cmd)
-		return
-
 	case "EHLO":
 		session.handleEHLO(cmd)
-		return
-
 	case "MAIL":
 		session.handleMAIL(cmd)
-		return
-
 	case "RCPT":
 		session.handleRCPT(cmd)
-		return
-
 	case "STARTTLS":
 		session.handleSTARTTLS(cmd)
-		return
-
 	case "DATA":
 		session.handleDATA(cmd)
-		return
-
 	case "RSET":
 		session.handleRSET(cmd)
-		return
-
 	case "NOOP":
 		session.handleNOOP(cmd)
-		return
-
 	case "QUIT":
 		session.handleQUIT(cmd)
-		return
-
 	case "AUTH":
 		session.handleAUTH(cmd)
-		return
-
 	case "XCLIENT":
 		session.handleXCLIENT(cmd)
-		return
-
+	default:
+		session.reply(502, "Unsupported command.")
 	}
-
-	session.reply(502, "Unsupported command.")
-
 }
 
 func (session *session) handleHELO(cmd command) {
-
 	if len(cmd.fields) < 2 {
 		session.reply(502, "Missing parameter")
 		return
@@ -123,11 +96,9 @@ func (session *session) handleHELO(cmd command) {
 	session.reply(250, "Go ahead")
 
 	return
-
 }
 
 func (session *session) handleEHLO(cmd command) {
-
 	if len(cmd.fields) < 2 {
 		session.reply(502, "Missing parameter")
 		return
@@ -162,11 +133,9 @@ func (session *session) handleEHLO(cmd command) {
 	session.reply(250, extensions[len(extensions)-1])
 
 	return
-
 }
 
 func (session *session) handleMAIL(cmd command) {
-
 	if session.peer.HeloName == "" {
 		session.reply(502, "Please introduce yourself first.")
 		return
@@ -204,11 +173,9 @@ func (session *session) handleMAIL(cmd command) {
 	session.reply(250, "Go ahead")
 
 	return
-
 }
 
 func (session *session) handleRCPT(cmd command) {
-
 	if session.envelope == nil {
 		session.reply(502, "Missing MAIL FROM command.")
 		return
@@ -239,7 +206,6 @@ func (session *session) handleRCPT(cmd command) {
 	session.reply(250, "Go ahead")
 
 	return
-
 }
 
 func (session *session) handleSTARTTLS(cmd command) {
