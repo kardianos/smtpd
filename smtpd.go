@@ -6,8 +6,8 @@ package smtpd
 import (
 	"bufio"
 	"crypto/tls"
+	"errors"
 	"fmt"
-	"log"
 	"net"
 	"time"
 )
@@ -109,7 +109,10 @@ func (srv *Server) newSession(c net.Conn) *session {
 
 // ListenAndServe starts the SMTP server and listens on the address provided
 func (srv *Server) ListenAndServe(addr string) error {
-	srv.configureDefaults()
+	err := srv.configureDefaults()
+	if err != nil {
+		return err
+	}
 
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -121,7 +124,10 @@ func (srv *Server) ListenAndServe(addr string) error {
 
 // Serve starts the SMTP server and listens on the Listener provided
 func (srv *Server) Serve(l net.Listener) error {
-	srv.configureDefaults()
+	err := srv.configureDefaults()
+	if err != nil {
+		return err
+	}
 
 	defer l.Close()
 
@@ -159,7 +165,7 @@ func (srv *Server) Serve(l net.Listener) error {
 	}
 }
 
-func (srv *Server) configureDefaults() {
+func (srv *Server) configureDefaults() error {
 	if srv.MaxMessageSize == 0 {
 		srv.MaxMessageSize = 10240000
 	}
@@ -185,7 +191,7 @@ func (srv *Server) configureDefaults() {
 	}
 
 	if srv.ForceTLS && srv.TLSConfig == nil {
-		log.Fatal("Cannot use ForceTLS with no TLSConfig")
+		return errors.New("Cannot use ForceTLS with no TLSConfig")
 	}
 
 	if srv.Hostname == "" {
@@ -195,6 +201,7 @@ func (srv *Server) configureDefaults() {
 	if srv.WelcomeMessage == "" {
 		srv.WelcomeMessage = fmt.Sprintf("%s ESMTP ready.", srv.Hostname)
 	}
+	return nil
 }
 
 func (session *session) serve() {
