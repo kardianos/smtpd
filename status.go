@@ -31,11 +31,13 @@ const (
 	StatusExceedStorage        = 552
 )
 
-var ErrPasswordNeeded = Error{Code: StatusPasswordNeeded, Message: StatusString(StatusPasswordNeeded)}
-var ErrMessageError = Error{Code: StatusMessageError, Message: StatusString(StatusMessageError)}
-var ErrMessageExceedStorage = Error{Code: StatusMessageExceedStorage, Message: StatusString(StatusMessageExceedStorage)}
-var ErrTempAuthFailure = Error{Code: StatusTempAuthFailure, Message: StatusString(StatusTempAuthFailure)}
-var ErrAuthInvalid = Error{Code: StatusAuthInvalid, Message: StatusString(StatusAuthInvalid)}
-var ErrAuthRequired = Error{Code: StatusAuthRequired, Message: StatusString(StatusAuthRequired)}
-var ErrServerError = Error{Code: StatusServerError, Message: StatusString(StatusServerError)}
-var ErrExceedStorage = Error{Code: StatusExceedStorage, Message: StatusString(StatusExceedStorage)}
+var (
+	ErrPasswordNeeded       = Error{Code: StatusPasswordNeeded, Message: StatusString(StatusPasswordNeeded)}
+	ErrMessageError         = Error{Code: StatusMessageError, Message: StatusString(StatusMessageError)}
+	ErrMessageExceedStorage = Error{Code: StatusMessageExceedStorage, Message: StatusString(StatusMessageExceedStorage)}
+	ErrTempAuthFailure      = Error{Code: StatusTempAuthFailure, Message: StatusString(StatusTempAuthFailure)}
+	ErrAuthInvalid          = Error{Code: StatusAuthInvalid, Message: StatusString(StatusAuthInvalid)}
+	ErrAuthRequired         = Error{Code: StatusAuthRequired, Message: StatusString(StatusAuthRequired)}
+	ErrServerError          = Error{Code: StatusServerError, Message: StatusString(StatusServerError)}
+	ErrExceedStorage        = Error{Code: StatusExceedStorage, Message: StatusString(StatusExceedStorage)}
+)
