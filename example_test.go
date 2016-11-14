@@ -1,10 +1,11 @@
 package smtpd_test
 
 import (
-	"bitbucket.org/chrj/smtpd"
 	"errors"
 	"net/smtp"
 	"strings"
+
+	"bitbucket.org/kardianos/smtpd"
 )
 
 func ExampleServer() {

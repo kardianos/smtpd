@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/smtp"
 
-	"bitbucket.org/chrj/smtpd"
+	"bitbucket.org/kardianos/smtpd"
 	"github.com/eaigner/dkim"
 )
 
