@@ -1,6 +1,4 @@
-// Package smtpd implements an SMTP server with support for STARTTLS,
-// authentication (PLAIN/LOGIN), XCLIENT and optional restrictions
-// on the different stages of the SMTP session.
+// Package smtpd is a SMTP server.
 package smtpd
 
 import (
