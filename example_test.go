@@ -5,7 +5,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"bitbucket.org/kardianos/smtpd"
+	"github.com/kardianos/smtpd"
 )
 
 func ExampleServer() {
